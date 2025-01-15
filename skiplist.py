@@ -5,7 +5,6 @@ from graphviz import Digraph
 class Node:
     def __init__(self, key, level):
         self.key = key
-        # Use np.array instead of list
         self.forward = np.array([None] * (level + 1), dtype=object)
 
 class SkipList:
