@@ -1,10 +1,12 @@
 import random
+import numpy as np
 from graphviz import Digraph
 
 class Node:
     def __init__(self, key, level):
         self.key = key
-        self.forward = [None] * (level + 1)
+        # Use np.array instead of list
+        self.forward = np.array([None] * (level + 1), dtype=object)
 
 class SkipList:
     def __init__(self, max_level, p):
@@ -20,7 +22,7 @@ class SkipList:
         return lvl
 
     def insert(self, key, visualize=False):
-        update = [None] * (self.max_level + 1)
+        update = np.array([None] * (self.max_level + 1), dtype=object)
         current = self.header
 
         for i in range(self.level, -1, -1):
@@ -56,7 +58,7 @@ class SkipList:
         return None
 
     def delete(self, key, visualize=False):
-        update = [None] * (self.max_level + 1)
+        update = np.array([None] * (self.max_level + 1), dtype=object)
         current = self.header
 
         for i in range(self.level, -1, -1):

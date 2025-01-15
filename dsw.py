@@ -1,10 +1,14 @@
 import graphviz
+import numpy as np  # Import numpy for arrays
 
 class TreeNode:
     def __init__(self, value):
         self.value = value
-        self.left = None
-        self.right = None
+        # We will use np.array to hold references to left and right children
+        self.children = np.array([None, None], dtype=object)  # [left, right]
+
+    def __repr__(self):
+        return f"TreeNode({self.value})"
 
 class BinaryTree:
     def __init__(self):
@@ -18,28 +22,28 @@ class BinaryTree:
 
     def _insert_rec(self, node, value):
         if value < node.value:
-            if node.left:
-                self._insert_rec(node.left, value)
+            if node.children[0] is None:
+                node.children[0] = TreeNode(value)
             else:
-                node.left = TreeNode(value)
+                self._insert_rec(node.children[0], value)
         else:
-            if node.right:
-                self._insert_rec(node.right, value)
+            if node.children[1] is None:
+                node.children[1] = TreeNode(value)
             else:
-                node.right = TreeNode(value)
+                self._insert_rec(node.children[1], value)
     
     def search(self, value):
         return self._search_rec(self.root, value)
 
     def _search_rec(self, node, value):
-        if not node:  # If the node is None, value is not found
+        if not node:
             return None
         if node.value == value:
             return node
         elif value < node.value:
-            return self._search_rec(node.left, value)
+            return self._search_rec(node.children[0], value)
         else:
-            return self._search_rec(node.right, value)
+            return self._search_rec(node.children[1], value)
         
     def delete(self, value):
         self.root = self._delete_rec(self.root, value)
@@ -48,35 +52,28 @@ class BinaryTree:
         if not node:
             return node
 
-        # Find the node to delete
         if value < node.value:
-            node.left = self._delete_rec(node.left, value)
+            node.children[0] = self._delete_rec(node.children[0], value)
         elif value > node.value:
-            node.right = self._delete_rec(node.right, value)
+            node.children[1] = self._delete_rec(node.children[1], value)
         else:
-            # Node to delete is found
-
-            # Case 1: Node has no children (leaf node)
-            if not node.left and not node.right:
+            if not node.children[0] and not node.children[1]:
                 return None
+            if not node.children[0]:
+                return node.children[1]
+            elif not node.children[1]:
+                return node.children[0]
 
-            # Case 2: Node has one child
-            if not node.left:
-                return node.right
-            elif not node.right:
-                return node.left
-
-            # Case 3: Node has two children
-            min_larger_node = self._get_min(node.right)
-            node.value = min_larger_node.value  # Replace node with its in-order successor
-            node.right = self._delete_rec(node.right, min_larger_node.value)
+            min_larger_node = self._get_min(node.children[1])
+            node.value = min_larger_node.value
+            node.children[1] = self._delete_rec(node.children[1], min_larger_node.value)
 
         return node
 
     def _get_min(self, node):
         current = node
-        while current.left:
-            current = current.left
+        while current.children[0]:
+            current = current.children[0]
         return current
 
     def generate_graphviz(self):
@@ -86,12 +83,12 @@ class BinaryTree:
             if not node:
                 return
             dot.node(str(id(node)), str(node.value))
-            if node.left:
-                dot.edge(str(id(node)), str(id(node.left)))
-                add_nodes_edges(node.left)
-            if node.right:
-                dot.edge(str(id(node)), str(id(node.right)))
-                add_nodes_edges(node.right)
+            if node.children[0]:
+                dot.edge(str(id(node)), str(id(node.children[0])))
+                add_nodes_edges(node.children[0])
+            if node.children[1]:
+                dot.edge(str(id(node)), str(id(node.children[1])))
+                add_nodes_edges(node.children[1])
         
         add_nodes_edges(self.root)
         return dot
@@ -108,30 +105,28 @@ class BinaryTree:
         print("Balanced tree:\n")
         self.generate_graphviz().render("balanced_tree", format="png", cleanup=True)
 
-
     def create_backbone(self):
         pseudo_root = TreeNode(0)
-        pseudo_root.right = self.root
+        pseudo_root.children[1] = self.root
         current = pseudo_root
 
-        while current.right:
-            if current.right.left:
+        while current.children[1]:
+            if current.children[1].children[0]:
                 self.rotate_right(current)
             else:
-                current = current.right
+                current = current.children[1]
 
-        self.root = pseudo_root.right
+        self.root = pseudo_root.children[1]
 
     def rotate_right(self, parent):
-        child = parent.right
-        parent.right = child.left
-        child.left = parent.right.right
-        parent.right.right = child
+        child = parent.children[1]
+        parent.children[1] = child.children[0]
+        child.children[0] = parent.children[1].children[1]
+        parent.children[1].children[1] = child
 
     def balance_tree(self):
         n = self.get_size()
         m = (2 ** (n.bit_length() - 1)) - 1
-
         self.perform_rotations(n - m)
 
         while m > 1:
@@ -140,33 +135,31 @@ class BinaryTree:
 
     def perform_rotations(self, count):
         parent = TreeNode(0)
-        parent.right = self.root
+        parent.children[1] = self.root
         current = parent
 
         for _ in range(count):
-            if not current.right or not current.right.right:
+            if not current.children[1] or not current.children[1].children[1]:
                 break  # Avoid invalid rotations
             self.rotate_left(current)
-            current = current.right
+            current = current.children[1]
 
-        self.root = parent.right
-
+        self.root = parent.children[1]
 
     def rotate_left(self, parent):
-        if not parent.right or not parent.right.right:
+        if not parent.children[1] or not parent.children[1].children[1]:
             return  # Skip rotation if there are no nodes to rotate
 
-        child = parent.right
-        parent.right = child.right
-        child.right = parent.right.left
-        parent.right.left = child
-
+        child = parent.children[1]
+        parent.children[1] = child.children[1]
+        child.children[1] = parent.children[1].children[0]
+        parent.children[1].children[0] = child
 
     def get_size(self):
         def count_nodes(node):
             if not node:
                 return 0
-            return 1 + count_nodes(node.left) + count_nodes(node.right)
+            return 1 + count_nodes(node.children[0]) + count_nodes(node.children[1])
 
         return count_nodes(self.root)
     
@@ -183,10 +176,11 @@ class BinaryTree:
             results.append(node.value)
 
         if node.value > low:
-            self._range_search_rec(node.left, low, high, results)
+            self._range_search_rec(node.children[0], low, high, results)
 
         if node.value < high:
-            self._range_search_rec(node.right, low, high, results)
+            self._range_search_rec(node.children[1], low, high, results)
+
 
 # Example usage
 if __name__ == "__main__":
