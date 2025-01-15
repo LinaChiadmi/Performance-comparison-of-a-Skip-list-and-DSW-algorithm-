@@ -1,10 +1,9 @@
 import graphviz
-import numpy as np  # Import numpy for arrays
+import numpy as np  
 
 class TreeNode:
     def __init__(self, value):
         self.value = value
-        # We will use np.array to hold references to left and right children
         self.children = np.array([None, None], dtype=object)  # [left, right]
 
     def __repr__(self):
