@@ -8,7 +8,8 @@ This project includes:
 ## Installation instructions:
 To run this project, clone the repository then create a virtual environment as follows  
 'python -m venv venv  
-source venv/bin/activate  # On Windows: venv\Scripts\activate'  
+source venv/bin/activate  # On Windows: venv\Scripts\activate'   
+Install graphviz 'sudo apt update sudo apt install graphviz'  
 After that, install the required dependencies 'pip install -r requirements.txt' (Note: This project was tested using Ubuntu, so the requirements.txt file was generated in that environment.)
 ## Usage:
 You can now run skiplist.py to visualize how it works on a given example , it will display the different steps of the process in the terminal (Fig 2 in the project) and also output an image of the skiplist (fig1).(Note: The output image is directly stored in the current directory as skiplist.png without being displayed.)  
