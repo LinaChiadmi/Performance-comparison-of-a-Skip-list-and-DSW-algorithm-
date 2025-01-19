@@ -3,6 +3,7 @@ import tracemalloc
 import matplotlib.pyplot as plt
 from skiplist import SkipList
 from dsw import BinaryTree
+import os
 
 # Function to load dataset
 def load_dataset(filename):
@@ -155,7 +156,9 @@ def plot_results(dataset_sizes,
                  memory_usage_search_skiplist, memory_usage_search_dsw,
                  memory_usage_delete_skiplist, memory_usage_delete_dsw,
                  memory_usage_range_search_skiplist, memory_usage_range_search_dsw):
-
+                     
+    if not os.path.exists('results'):
+	    os.makedirs('results')                
     # Insert Operation Time Comparison
     plt.figure(figsize=(10, 6))
     plt.plot(dataset_sizes, insert_times_skiplist, label="SkipList Insert Time", color='blue')
